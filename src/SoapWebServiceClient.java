@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.io.BufferedReader;
 
 public class SoapWebServiceClient {
 
@@ -30,6 +31,7 @@ public class SoapWebServiceClient {
 //            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 //            LocalDateTime now = LocalDateTime.now();
 //            System.out.println(dtf);
+
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
             String dt = sdf.format(new Date());
