@@ -1,27 +1,57 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
-pidor
+import java.util.List;
+
 
 public class SoapWebServiceClient {
 
     public static void main(String args[]) throws Exception {
+        //случайным образом выбирается город из параметра для запроса погоды
 
-        String coord1 = "46.861";
-        String coord2 = "-68.012";
+        //System.out.println("Getting random line from file");
+
+        InputStream is = null;
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(
+                    new FileInputStream("resources/List.csv")));
+
+            //System.out.println("Reading file...");
+            List<String> list = new ArrayList<String>();
+            String line = reader.readLine();
+            while (line != null) {
+                list.add(line);
+                line = reader.readLine();
+            }
+
+            //System.out.println("Generating random...");
+            SecureRandom random = new SecureRandom();
+            int row = random.nextInt(list.size());
+            String citi = list.get(row);
+            String[] mas = citi.split(";");
+
+//            System.out.println("Random selection is:\n");
+//            System.out.println(list.get(row));
+//            System.out.println(mas[0] + mas[1] + mas[2]);
+
+
+
+        String coord1 = "46.861"; //mas[1]
+        String coord2 = "-68.012"; //mas[2]
         String time1 = "2023-01-16T16:1"; //2023-01-16T16%3A14
         String time2 = "2023-01-17T16:1"; //2023-01-17T16%3A14
 
         try {
             //String url = "https://graphical.weather.gov/xml/SOAP_server/ndfdXMLserver.php";
             String url = "https://graphical.weather.gov/xml/SOAP_server/ndfdXMLclient.php?whichClient=NDFDgen&lat="
-                    + coord1 + "&lon=" + coord2 + "&listLatLon=&lat1=&lon1=&lat2=&lon2=&resolutionSub=&listLat1=&listLon1=&listLat2=&listLon2=&resolutionList=&endPoint1Lat=&endPoint1Lon=&endPoint2Lat=&endPoint2Lon=&listEndPoint1Lat=&listEndPoint1Lon=&listEndPoint2Lat=&listEndPoint2Lon=&zipCodeList=&listZipCodeList=&centerPointLat=&centerPointLon=&distanceLat=&distanceLon=&resolutionSquare=&listCenterPointLat=&listCenterPointLon=&listDistanceLat=&listDistanceLon=&listResolutionSquare=&citiesLevel=&listCitiesLevel=&sector=&gmlListLatLon=&featureType=&requestedTime=&startTime=&endTime=&compType=&propertyName=&product=time-series&"
+                    + mas[1] + "&lon=" + mas[2] + "&listLatLon=&lat1=&lon1=&lat2=&lon2=&resolutionSub=&listLat1=&listLon1=&listLat2=&listLon2=&resolutionList=&endPoint1Lat=&endPoint1Lon=&endPoint2Lat=&endPoint2Lon=&listEndPoint1Lat=&listEndPoint1Lon=&listEndPoint2Lat=&listEndPoint2Lon=&zipCodeList=&listZipCodeList=&centerPointLat=&centerPointLon=&distanceLat=&distanceLon=&resolutionSquare=&listCenterPointLat=&listCenterPointLon=&listDistanceLat=&listDistanceLon=&listResolutionSquare=&citiesLevel=&listCitiesLevel=&sector=&gmlListLatLon=&featureType=&requestedTime=&startTime=&endTime=&compType=&propertyName=&product=time-series&"
             + "begin=" + time1 + "&end=" + time2 + "&Unit=m&maxt=maxt&mint=mint&dew=dew&wspd=wspd&rh=rh&Submit=Submit";
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -81,6 +111,15 @@ public class SoapWebServiceClient {
             System.out.println(response.toString());
         } catch (Exception e){
             System.out.println(e);
+        }
+
+        } finally {
+            if (is != null) {
+                is.close();
+            }
+            if (reader != null) {
+                reader.close();
+            }
         }
     }
 }
