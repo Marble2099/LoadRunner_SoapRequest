@@ -3,19 +3,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class SoapWebServiceClient {
 
     public static void main(String args[]) throws Exception {
-        //случайным образом выбирается город из параметра для запроса погоды
-
-        //System.out.println("Getting random line from file");
+        //случайным образом выбирается город из файла для запроса погоды
 
         InputStream is = null;
         BufferedReader reader = null;
@@ -23,7 +22,7 @@ public class SoapWebServiceClient {
             reader = new BufferedReader(new InputStreamReader(
                     new FileInputStream("resources/List.csv")));
 
-            //System.out.println("Reading file...");
+            //Считываем файл
             List<String> list = new ArrayList<String>();
             String line = reader.readLine();
             while (line != null) {
@@ -31,7 +30,7 @@ public class SoapWebServiceClient {
                 line = reader.readLine();
             }
 
-            //System.out.println("Generating random...");
+            //Берем случайное значение
             SecureRandom random = new SecureRandom();
             int row = random.nextInt(list.size());
             String citi = list.get(row);
@@ -41,12 +40,29 @@ public class SoapWebServiceClient {
 //            System.out.println(list.get(row));
 //            System.out.println(mas[0] + mas[1] + mas[2]);
 
+            // Берем текущее время и время на минуту раньше
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+            Date dt = new Date();
+            System.out.println(sdf.format(dt));
 
+            // Конвертируем Date в Calendar
+            Calendar can = Calendar.getInstance();
+            Calendar can1 = Calendar.getInstance();
+            can.setTime(dt);
 
-        String coord1 = "46.861"; //mas[1]
-        String coord2 = "-68.012"; //mas[2]
-        String time1 = "2023-01-16T16:1"; //2023-01-16T16%3A14
-        String time2 = "2023-01-17T16:1"; //2023-01-17T16%3A14
+            // Проводим вычитание одной минуты из текущего времени
+            //can.add(Calendar.DATE, -1);
+            can.add(Calendar.MINUTE, -1);
+
+            // Конвертиурем calendar обратно в Date
+            Date currentDateMinusOne = can.getTime();
+
+            System.out.println(sdf.format(currentDateMinusOne));
+
+//            String coord1 = "34.52"; //mas[1]
+//            String coord2 = "82.58"; //mas[2]
+            String time2 = sdf.format(dt);
+            String time1 = sdf.format(currentDateMinusOne);
 
         try {
             //String url = "https://graphical.weather.gov/xml/SOAP_server/ndfdXMLserver.php";
@@ -58,40 +74,6 @@ public class SoapWebServiceClient {
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type","application/soap+xml; charset=utf-8 ");
 
-//            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-//            LocalDateTime now = LocalDateTime.now();
-//            System.out.println(dtf);
-
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-            String dt = sdf.format(new Date());
-            //System.out.println(dt);
-
-//            String coord1 = "46.861";
-//            String coord2 = "-68.012";
-//            String time1 = "2023-01-16T16:1";
-//            String time2 = "2023-01-17T16:1";
-
-//            String xml = "<soapenv:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ndf=\"https://graphical.weather.gov/xml/DWMLgen/wsdl/ndfdXML.wsdl\">\n" +
-//                    "   <soapenv:Header/>\n" +
-//                    "   <soapenv:Body>\n" +
-//                    "      <ndf:NDFDgen soapenv:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n" +
-//                    "         <latitude xsi:type=\"xsd:decimal\">" + coord1 + "</latitude>\n" +
-//                    "         <longitude xsi:type=\"xsd:decimal\">" + coord2 + "</longitude>\n" +
-//                    "         <product xsi:type=\"dwml:productType\" xmlns:dwml=\"https://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd\">time-series</product>\n" +
-//                    "         <startTime xsi:type=\"xsd:dateTime\">" + time1 + "</startTime>\n" +
-//                    "         <endTime xsi:type=\"xsd:dateTime\">" + time2 + "</endTime>\n" +
-//                    "         <Unit xsi:type=\"dwml:unitType\" xmlns:dwml=\"https://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd\">m</Unit>\n" +
-//                    "         <weatherParameters xsi:type=\"dwml:weatherParametersType\" xmlns:dwml=\"https://graphical.weather.gov/xml/DWMLgen/schema/DWML.xsd\">\n" +
-//                    "         <maxt xsi:type=\"xsd:boolean\">TRUE</maxt>\n" +
-//                    "         <mint xsi:type=\"xsd:boolean\">TRUE</mint>\n" +
-//                    "         <rh xsi:type=\"xsd:boolean\">TRUE</rh>\n" +
-//                    "         <wspd xsi:type=\"xsd:boolean\">TRUE</wspd>\n" +
-//                    "         <dew xsi:type=\"xsd:boolean\">TRUE</dew>\n" +
-//                    "         </weatherParameters>\n" +
-//                    "      </ndf:NDFDgen>\n" +
-//                    "   </soapenv:Body>\n" +
-//                    "</soapenv:Envelope>";
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
             wr.writeBytes(url);
@@ -109,6 +91,20 @@ public class SoapWebServiceClient {
             br.close();
 
             System.out.println(response.toString());
+
+            // выводим максимальную и минимальную температуру воздуха за текущий  день (в градусах Фаренгейта или Цельсия),
+            // влажность воздуха, скорость ветра и температуру точки росы
+            String input = response.toString();
+            Pattern pattern = Pattern.compile("<name>([^<]+)<\\/name>\\s*<value>([\\d-]{1,3})<\\/value>");
+            Matcher matcher = pattern.matcher(input);
+            if (matcher.find() == true) {
+                System.out.println(mas[0]);
+                System.out.println(matcher.group(1) + " " + matcher.group(2));
+            while(matcher.find())
+                System.out.println(matcher.group(1) + " " + matcher.group(2));
+            } else {
+                System.out.println("FAIL"); // когда сервис не найдет город или страну, запрос переходит в статус «FAIL»
+            }
         } catch (Exception e){
             System.out.println(e);
         }
